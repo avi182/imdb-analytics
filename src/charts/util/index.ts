@@ -1,9 +1,5 @@
-/**
- * calculates pearson correlation
- * @param {number[]} d1
- * @param {number[]} d2
- */
-export function correlation(d1: any[], d2: any[]) {
+// calculates pearson correlation
+export const correlation = (d1: any[], d2: any[]): number => {
   let { min, pow, sqrt } = Math;
   let add = (a: number, b: number) => a + b;
   let n = min(d1.length, d2.length);
@@ -19,4 +15,4 @@ export function correlation(d1: any[], d2: any[]) {
     return 0;
   }
   return (mulSum - (sum1 * sum2) / n) / dense;
-}
+};

@@ -1,9 +1,20 @@
 import { correlation } from ".";
-import { CorrelationScatterChartData } from "../../types";
+import { CorrelationScatterChartData, Movie } from "../../types";
 
-export const formatDataForCorrelationScatterChart = (
-  arr: any[]
-): CorrelationScatterChartData[] => {
+export const getChartData = (
+  movies: Movie[],
+  callback: ({ a, b }: any) => {},
+  disableCorrelationLine: boolean = false
+) =>
+  formatDataForCorrelationScatterChart(
+    movies.map(callback),
+    disableCorrelationLine
+  );
+
+const formatDataForCorrelationScatterChart = (
+  arr: any[],
+  disableCorrelationLine: boolean
+): { data: CorrelationScatterChartData[]; endOfXAxis: number } => {
   let xPoint: { min?: number; max?: number } = {};
   let yPoint: { min?: number; max?: number } = {};
   const xPoints: number[] = [];
@@ -47,25 +58,30 @@ export const formatDataForCorrelationScatterChart = (
       return formattedObject;
     })
     // Filter out any object that holds a null or zeroed value for the 'y' axis
-    .filter((o) => o.yAxis !== 0);
+    .filter((o) => o.yAxis !== 0 || typeof o.yAxis == "number");
 
-  // Calculating the correlation line data
-  const xAndYCorrelation = correlation(xPoints, yPoints);
-  const middleYPoint = yPoint && Number(yPoint.max) / 2;
-  // Correlation line start on y axis
-  const start =
-    xAndYCorrelation > 0
-      ? middleYPoint - middleYPoint * Math.abs(xAndYCorrelation)
-      : middleYPoint + middleYPoint * Math.abs(xAndYCorrelation);
-  // Correlation line end on y axis
-  const end =
-    xAndYCorrelation > 0
-      ? middleYPoint + middleYPoint * Math.abs(xAndYCorrelation)
-      : middleYPoint - middleYPoint * Math.abs(xAndYCorrelation);
-  // Pushing the correlation line into the chart data
-  data.push(
-    { xAxis: 0, correlationLine: start },
-    { xAxis: xPoint.max ? xPoint.max : 0, correlationLine: end }
-  );
-  return data;
+  if (!disableCorrelationLine) {
+    // Calculating the correlation line data
+    const xAndYCorrelation = correlation(xPoints, yPoints);
+    const middleYPoint = yPoint && Number(yPoint.max) / 2;
+    // Correlation line start on y axis
+    const start =
+      xAndYCorrelation > 0
+        ? middleYPoint - middleYPoint * Math.abs(xAndYCorrelation)
+        : middleYPoint + middleYPoint * Math.abs(xAndYCorrelation);
+    // Correlation line end on y axis
+    const end =
+      xAndYCorrelation > 0
+        ? middleYPoint + middleYPoint * Math.abs(xAndYCorrelation)
+        : middleYPoint - middleYPoint * Math.abs(xAndYCorrelation);
+    // Pushing the correlation line into the chart data
+    data.push(
+      { xAxis: 0, correlationLine: start },
+      {
+        xAxis: xPoint.max ? Math.round(xPoint.max + 1) : 0,
+        correlationLine: end,
+      }
+    );
+  }
+  return { data: data, endOfXAxis: Math.round(Number(xPoint.max) + 1) };
 };
