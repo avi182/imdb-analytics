@@ -1,24 +1,44 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import Axios from "axios";
+import React, { useEffect, useState } from "react";
+import "./App.css";
+import { CorrelationScatterChart } from "./charts/correlation-chart/CorrelationScatterChart";
+import { formatDataForCorrelationScatterChart as formatDataForChart } from "./charts/util/formatter";
+import { Movie } from "./types";
 
 function App() {
+  const [isLoading, setLoading] = useState<boolean>(true);
+
+  const [movies, setMovies] = useState<Movie[]>([]);
+  useEffect(() => {
+    Axios.get("http://localhost:3000/api/movies/all").then(
+      ({ data: movies }) => {
+        setMovies(movies);
+        setLoading(false);
+      }
+    );
+  }, []);
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      {isLoading ? (
+        <>Loading...</>
+      ) : (
+        <div id="my-class">
+          <h3>Correlation between name length and gross profit</h3>
+          <CorrelationScatterChart
+            data={formatDataForChart(
+              movies.map(({ name, cumulativeGross }: Movie) => ({
+                name: name.length,
+                cumulativeGross: cumulativeGross / 1000000,
+                label: name,
+              }))
+            )}
+            yAxisLabel="Profit"
+            xAxisLabel="Letters"
+            yAxisUnitString="M$"
+          />
+        </div>
+      )}
     </div>
   );
 }
