@@ -46,8 +46,8 @@ export function CorrelationScatterChart({
 
   return (
     <ComposedChart
-      width={600}
-      height={500}
+      width={800}
+      height={600}
       data={data}
       margin={{
         top: 20,
